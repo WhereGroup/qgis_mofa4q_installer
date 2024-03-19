@@ -1,0 +1,12 @@
+input/other_programs/*.exe
+output_exe/*.exe
+
+input/batch/__pycache__/*.pyc
+
+output_exe/MoFa4Q_*_Install.exe
+
+input/other_programs/*.exe
+input/other_programs/*.msi
+
+/.idea
+
