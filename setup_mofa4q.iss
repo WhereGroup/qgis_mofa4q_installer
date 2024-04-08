@@ -69,13 +69,13 @@ Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 
 [CustomMessages]
 english.UninstallQgisProfile=English Would you also like to completely delete the local QGIS profile %1 ?
-german.UninstallQgisProfile=German M�chten Sie komplett das lokale QGIS Profile von %1 l�schen?
+german.UninstallQgisProfile=German Möchten Sie komplett das lokale QGIS Profile von %1 löschen?
 english.UninstallQgis=English Would you also like to completely uninstall the QGIS program with version %1 ?
-german.UninstallQgis=German M�chten Sie komplett das QGIS-Programm mit der Version von %1 deinstallieren?
+german.UninstallQgis=German Möchten Sie komplett das QGIS-Programm mit der Version von %1 deinstallieren?
 english.ErrorUninstallCleanupQgisInstall=Failed running uninstall_cleanup_qgisInstall.bat file
-german.ErrorUninstallCleanupQgisInstall=Fehler beim Ausf�hren der Datei uninstall_cleanup_qgisInstall.bat
+german.ErrorUninstallCleanupQgisInstall=Fehler beim Ausführen der Datei uninstall_cleanup_qgisInstall.bat
 english.ErrorOtherRunInstaller=Other installer failed to run!
-german.ErrorOtherRunInstaller=Anderes Installationsprogramm konnte nicht ausgef�hrt werden!
+german.ErrorOtherRunInstaller=Anderes Installationsprogramm konnte nicht ausgefhrt werden!
 
 [Tasks]
 ; checkbox for creating desktop link
