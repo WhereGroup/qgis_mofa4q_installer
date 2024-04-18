@@ -1,6 +1,3 @@
-# ALL CURRENT GPKGS FOR PRESENTATION OF FOSSGIS HAMBURG ARE SAVED UNDER:
-https://files.wheregroup.com/s/SXEaPTfSTmKHjmT   to avoid to save them directly in GIT-repo
-
 # QGIS-Install_MoFa4Q
 MoFa4Q-Installer has its own Git-Repo (separate from the MoFa4Q Repo) 
 
@@ -24,6 +21,13 @@ It will be stored:
 
 
 ## Quick start
+The executable with a standard configuration is available under: https://github.com/WhereGroup/qgis_mofa4q_installer/releases/download/v2.1.0/MoFa4Q_v.2.1.0-qgis_ltr_3.34.4-windows-x64.exe
+
+If you need some sample data to show in MoFa4Q you can try to use:
+https://github.com/WhereGroup/qgis_mofa4q_installer/releases/download/v2.1.0/hh_sample_data.zip 
+
+Data used for the presentation at FOSSGIS in Hamburg 
+
 Quick start for creating the executable:
 1. clone this repo locally (e.g. under C:\devel\mofa4q_public). 
 The folder is named as [QGIS-Install_MoFa4Q]
