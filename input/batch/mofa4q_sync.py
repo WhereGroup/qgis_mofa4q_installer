@@ -1,14 +1,13 @@
-# -*- coding: utf-8 -*-
 import locale
 import os
 import shutil
 import sys
 from abc import abstractmethod
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from PyQt5.QtCore import (QDateTime, QDir, QFile, Qt, QThread,
-                          pyqtSignal)
+                          pyqtSignal, QTranslator)
 from PyQt5.QtGui import QColor, QFont, QIcon, QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QLabel, QProgressBar,
                              QPushButton, QSizePolicy, QTableView, QTextEdit,
@@ -52,8 +51,8 @@ class MoFa4QSync(QWidget):
     TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
     TIMESTAMP_FILE = "_tmstmp.txt"
     TITLE = "Synchronisierung - GeoPackages"
-    INIT_MSG = ("Dieses Programm aktualisiert und lädt alle GeoPackages herunter. "
-                "\nDateien in rot markiert sind für Luftbilder.")
+    INIT_MSG_1 = "Dieses Programm aktualisiert und lädt alle GeoPackages herunter."
+    INIT_MSG_2 = "Dateien in rot markiert sind für Luftbilder."
     STOP_MSG = "Der Download wurde gestoppt."
     UPDATED_MSG = "  ist aktuell"
     DOP_MSG = "Luftbilder - ACHTUNG! Download ist aufwändig"
@@ -67,17 +66,18 @@ class MoFa4QSync(QWidget):
     downloadableList: List[DownloadedFile] = []
     selFiles = []
 
-    def __init__(self, inputInstallMofa4QPath: Optional[str]=None, inputProfilePath: Optional[str]=None, inputCompany: Optional[str]=None,
+    def __init__(self, inputInstallMofa4QPath: Optional[str] = None, inputProfilePath: Optional[str] = None,
+                 inputCompany: Optional[str] = None,
                  inputServerFolder: Optional[str] = None):
         super().__init__()
-        locale.setlocale(locale.LC_ALL, '')
-        self.installPath = inputInstallMofa4QPath if inputInstallMofa4QPath else self.INSTALL_PATH
-        self.gpkgFolder = os.path.join(inputProfilePath, 'geopackages\public') if inputProfilePath else self.GPKG_FOLDER_WIN
+        # locale.setlocale(locale.LC_ALL, '')
+        self.gpkgFolder = os.path.join(inputProfilePath,
+                                       'geopackages\public') if inputProfilePath else self.GPKG_FOLDER_WIN
         self.company = inputCompany if inputCompany is not None else self.DEFAULT_COMPANY
         self.title = "{0} - {1}".format(self.TITLE, self.company)
         self.width = self.WIDTH
         self.height = self.HEIGHT
-        
+
         self.serverFolder = inputServerFolder
         # check WIN OS
         if os.name == 'nt':
@@ -96,13 +96,13 @@ class MoFa4QSync(QWidget):
 
         self.setWindowTitle(self.title)
 
-        self.msg = QLabel(self.INIT_MSG, self)
+        self.msg = QLabel(self.tr(self.INIT_MSG_1) + '\n' + self.tr(self.INIT_MSG_2), self)
         self.msg.setWordWrap(True)
 
         self.tableView: QTableView = QTableView()
         model: QStandardItemModel = QStandardItemModel()
-        model.setHorizontalHeaderLabels([self.tr('Dateiname'), self.tr('Größe'), self.tr('Letzte Änderung Lokal'), 
-                                        self.tr('Letzte Änderung Server')])
+        model.setHorizontalHeaderLabels([self.tr('Dateiname'), self.tr('Größe'), self.tr('Letzte Änderung Lokal'),
+                                         self.tr('Letzte Änderung Server')])
         self.tableView.setModel(model)
         model.itemChanged.connect(self.stateChanged)
         self.tableView.setColumnWidth(0, self.COL_0)
@@ -114,13 +114,13 @@ class MoFa4QSync(QWidget):
 
         self.progressBar = QProgressBar()
 
-        self.btn1 = QPushButton("Download starten", self)
+        self.btn1 = QPushButton(self.tr("Download starten"), self)
         self.btn1.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.btn1.clicked.connect(self.runDownload)
-        self.btn2 = QPushButton("Stoppen", self)
+        self.btn2 = QPushButton(self.tr("Stoppen"), self)
         self.btn2.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.btn2.clicked.connect(self.stopProcess)
-        self.btn3 = QPushButton("Beenden", self)
+        self.btn3 = QPushButton(self.tr("Beenden"), self)
         self.btn3.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.btn3.clicked.connect(self.closeDialog)
 
@@ -147,12 +147,13 @@ class MoFa4QSync(QWidget):
         try:
             self.createList(model)
         except FileNotFoundError as e:
-            self.reportInfo("Keine Verbindung zum Server oder Resource nicht gefunden: {} {}"
+            self.reportInfo(self.tr("Keine Verbindung zum Server oder Resource nicht gefunden: {} {}")
                             .format(self.serverFolder, str(e)), Status.ERROR)
         except PermissionError as e:
-            self.reportInfo("Keine Verbindung zum Server: {} {}".format(self.serverFolder, str(e)), Status.ERROR)
+            self.reportInfo(self.tr("Keine Verbindung zum Server: {} {}").format(self.serverFolder, str(e)),
+                            Status.ERROR)
         except Exception as e:
-            self.reportInfo("Unbekannter Fehler: {}".format(str(e)), Status.ERROR)
+            self.reportInfo(self.tr("Unbekannter Fehler: {}").format(str(e)), Status.ERROR)
 
     def copyLargeFile(self, src, dest, buffer_size=16000):
         with open(src, 'rb') as fsrc:
@@ -166,7 +167,8 @@ class MoFa4QSync(QWidget):
         dopGpkg: Optional[DownloadedFile] = None
         fileEntry: os.DirEntry
         for fileEntry in os.scandir(self.serverFolder):
-            if fileEntry.name.endswith(".gpkg") or fileEntry.name.endswith(".qlr") or fileEntry.name == "sequence_qlr.yml":
+            if fileEntry.name.endswith(".gpkg") or fileEntry.name.endswith(
+                    ".qlr") or fileEntry.name == "sequence_qlr.yml":
                 dFile = DownloadedFile(fileEntry.name, fileEntry.stat().st_size, fileEntry.stat().st_mtime)
                 if dFile.name == self.ADDRESS_GEOPACKAGE or dFile.name == self.GEOSEARCH_GEOPACKAGE:
                     dFile.specialSubFolder = "../search"
@@ -222,7 +224,7 @@ class MoFa4QSync(QWidget):
     def stopProcess(self):
         if self.runThread and self.runThread.running:
             self.runThread.running = False
-            self.reportInfo(self.STOP_MSG, Status.ERROR)
+            self.reportInfo(self.tr(self.STOP_MSG), Status.ERROR)
 
     def setProgressBar(self, value: int):
         """ Handles progress bar """
@@ -234,7 +236,7 @@ class MoFa4QSync(QWidget):
 
     def addRow(self, dFile: DownloadedFile, rowCount: int, model: QStandardItemModel):
         locFile = self.isFileUpdated(dFile)
-        item1 = QStandardItem(dFile.name + (self.UPDATED_MSG if locFile.get("isUp") else ""))
+        item1 = QStandardItem(dFile.name + (self.tr(self.UPDATED_MSG) if locFile.get("isUp") else ""))
         item1.setCheckable(True)
         item1.setEnabled(not locFile.get("isUp"))
         item2 = QStandardItem("{:.1f} MB".format(dFile.size / 1000000))
@@ -250,9 +252,9 @@ class MoFa4QSync(QWidget):
                 item2.setText('ca. {:.1f} GB'.format(round(dFile.size / 100000000) / 10)),  # GB
                 item1.setForeground(QColor("red"))
                 if locFile.get("isUp") is False:
-                    item1.setText(self.DOP_MSG)
+                    item1.setText(self.tr(self.DOP_MSG))
                 else:
-                    item1.setText("Luftbilder - " + self.UPDATED_MSG)
+                    item1.setText("Luftbilder - " + self.tr(self.UPDATED_MSG))
 
         model.setItem(rowCount, 0, item1)
         model.setItem(rowCount, 1, item2)
@@ -264,7 +266,7 @@ class MoFa4QSync(QWidget):
         else:
             item1.setCheckState(Qt.Unchecked)
 
-    def isFileUpdated(self, dFile: DownloadedFile) -> dict[bool, QDateTime]:
+    def isFileUpdated(self, dFile: DownloadedFile) -> Dict[str, Optional[Union[bool, QDateTime]]]:
         """
         Checks if date on the server is more recent than the local geopackage
         The method toTime_t() is used: it returns the datetime as the number
@@ -331,7 +333,7 @@ class RunThread(WorkerThread):
     SUCCESS_MSG = "Der Download wurde erfolgreich abgeschlossen."
     FAILURE_MSG = "Der Download wurde nicht erfolgreich abgeschlossen."
     START_MSG = "Download gestartet. Der Vorgang kann lange dauern"
-    MB_MSG = "{} Dateien mit insgesamt {:.1f} MB \n"
+    MB_MSG = "{} Dateien mit insgesamt {:.1f} MB"
     FILE_DOWNLOAD_MSG = "File {} wird herunterladen..."
     COMPLETE_MSG = "     Datei {} wurde heruntergeladen"
     MAX_PARTIAL_DOWNLOAD = 10
@@ -377,9 +379,9 @@ class RunThread(WorkerThread):
 
             self.signalStatus.emit("", Status.NORMAL)
             if self.running:
-                self.signalStatus.emit(self.SUCCESS_MSG, Status.UPDATED)
+                self.signalStatus.emit(self.tr(self.SUCCESS_MSG), Status.UPDATED)
             else:
-                self.signalStatus.emit(self.FAILURE_MSG, Status.ERROR)
+                self.signalStatus.emit(self.tr(self.FAILURE_MSG), Status.ERROR)
 
             print("END......................................")
 
@@ -395,9 +397,9 @@ class RunThread(WorkerThread):
         fileCount = len(downloadableList)
         actualSize = 0
         self.signalStatus.emit("", Status.NORMAL)
-        self.signalStatus.emit(self.START_MSG, Status.NORMAL)
-        self.signalStatus.emit(self.MB_MSG.format(
-            fileCount, totalMb / 1000000), Status.NORMAL)
+        self.signalStatus.emit(self.tr(self.START_MSG), Status.NORMAL)
+        self.signalStatus.emit(self.tr(self.MB_MSG).format(
+            fileCount, totalMb / 1000000) + ' \n', Status.NORMAL)
         dFile: DownloadedFile
         for dFile in downloadableList:
             if self.running is False:
@@ -416,7 +418,7 @@ class RunThread(WorkerThread):
     def getDownloadFile(self, dFile: DownloadedFile, newSize: float, totalMb: float, subFolderServer: str,
                         subFolderLoc: str):
         # print(dFile, subFolderServer, subFolderLoc, newSize, totalMb)
-        self.signalStatus.emit(self.FILE_DOWNLOAD_MSG.format(dFile.name), Status.NORMAL)
+        self.signalStatus.emit(self.tr(self.FILE_DOWNLOAD_MSG).format(dFile.name), Status.NORMAL)
         localFolder = os.path.join(self.GPKG_FOLDER, subFolderLoc)
         if not QDir(localFolder).exists():
             QDir().mkdir(localFolder)
@@ -437,7 +439,7 @@ class RunThread(WorkerThread):
         else:
             title = "- " + title + " "
         if self.running:
-            self.signalStatus.emit(self.COMPLETE_MSG.format(dFile.name, title), Status.UPDATED_VIEW)
+            self.signalStatus.emit(self.tr(self.COMPLETE_MSG).format(dFile.name, title), Status.UPDATED_VIEW)
 
         self.createTimestampFile(dFile.updateDate, locFilePath)
         return locFilePath
@@ -455,7 +457,7 @@ class RunThread(WorkerThread):
         fileName: str = os.path.splitext(dFile)[0] + self.TIMESTAMP_FILE
         if os.path.splitext(dFile)[1] == '.qlr':  # special case for qlr
             fileName: str = os.path.splitext(dFile)[0] + '_qlr' + self.TIMESTAMP_FILE
-        with open(fileName, "w") as timestamp:          
+        with open(fileName, "w") as timestamp:
             timestamp.write(QDateTime.toString(updatedDate, self.TIME_FORMAT))
 
 
@@ -465,7 +467,19 @@ if __name__ == '__main__':
     inputArg3 = sys.argv[3] if sys.argv[3:] else None
     inputArg4 = sys.argv[4] if sys.argv[4:] else None
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/icons/mops_sync_public.ico"))
-    #print(inputArg1, inputArg2, inputArg3, inputArg4)
+
+    installPath = inputArg1
+    localePath = ''
+    if locale.getlocale()[0] != 'de_DE':  # if language not german => apply the translation to english
+        localePath = os.path.join(installPath, 'batch', 'i18n', 'lng_en.qm')
+
+    if os.path.exists(localePath):
+        translator = QTranslator()
+        translator.load(localePath)
+        app.installTranslator(translator)
+
+    app.setWindowIcon(
+        QIcon(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/icons/mops_sync_public.ico"))
+    # print(inputArg1, inputArg2, inputArg3, inputArg4)
     ex = MoFa4QSync(inputArg1, inputArg2, inputArg3, inputArg4)
     sys.exit(app.exec_())
