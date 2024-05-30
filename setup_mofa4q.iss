@@ -5,7 +5,7 @@
 #define MyAppName "MoFa4Q"
 ; NOTE: set QGIS profile name
 #define MyAppCompany "public"
-#define MyAppVersion "2.1.2"
+#define MyAppVersion "2.1.1"
 #define MyAppPublisher "WhereGroup GmbH"
 #define MyAppURL "http://www.wheregroup.com/"
 #define MyAppIconName "MoFa4Q"
@@ -68,14 +68,24 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 
 [CustomMessages]
+english.FirstTabInstaller=The program will install QGIS and MoFa4Q profile.
+german.FirstTabInstaller=Das Programm wird QGIS und MoFa4Q-Profil installieren.
+english.FirstTabInstaller2=MoFa4Q Installer
+german.FirstTabInstaller2=MoFa4Q Installer
+english.FirstTabInstaller3=The installer for QGIS and the MoFa4Q profile.
+german.FirstTabInstaller3=Mit dem Installer von QGIS und das MoFa4Q-Profil.
 english.UninstallQgisProfile=English Would you also like to completely delete the local QGIS profile %1 ?
-german.UninstallQgisProfile=German MÃ¶chten Sie komplett das lokale QGIS Profile von %1 lÃ¶schen?
+german.UninstallQgisProfile=German Möchten Sie komplett das lokale QGIS Profile von %1 löschen?
 english.UninstallQgis=English Would you also like to completely uninstall the QGIS program with version %1 ?
-german.UninstallQgis=German MÃ¶chten Sie komplett das QGIS-Programm mit der Version von %1 deinstallieren?
+german.UninstallQgis=German Möchten Sie komplett das QGIS-Programm mit der Version von %1 deinstallieren?
 english.ErrorUninstallCleanupQgisInstall=Failed running uninstall_cleanup_qgisInstall.bat file
-german.ErrorUninstallCleanupQgisInstall=Fehler beim AusfÃ¼hren der Datei uninstall_cleanup_qgisInstall.bat
+german.ErrorUninstallCleanupQgisInstall=Fehler beim Ausführen der Datei uninstall_cleanup_qgisInstall.bat
 english.ErrorOtherRunInstaller=Other installer failed to run!
-german.ErrorOtherRunInstaller=Anderes Installationsprogramm konnte nicht ausgefhrt werden!
+german.ErrorOtherRunInstaller=Anderes Installationsprogramm konnte nicht ausgeführt werden!
+english.StartQgis=Starts QGIS with the profile
+german.StartQgis=Startet die QGIS mit dem Profil
+english.StartQgisSynch=Starts Synch-Tool
+german.StartQgisSynch=Startet die Anwendung Mofa4q-Sync
 
 [Tasks]
 ; checkbox for creating desktop link
@@ -94,9 +104,10 @@ Source: "C:\{#DEVELDir}\{#DEVEL_QGISInstallMofa4Q}\input\icons\*.*"; \
       Excludes: "*.~*,*__~*,*.git*,*.vscode*,*.idea*"; \
       DestDir: "{app}\icons"; \
       Flags: comparetimestamp;
-Source: "C:\{#DEVELDir}\{#DEVEL_QGISInstallMofa4Q}\input\batch\*.*"; \
+Source: "C:\{#DEVELDir}\{#DEVEL_QGISInstallMofa4Q}\input\batch\*"; \
       Excludes: "*.~*,*__~*,*.git*,*.vscode*,*.idea*,*__pycache__*"; \
-      DestDir: "{app}\batch";
+      DestDir: "{app}\batch"; \
+      Flags: recursesubdirs;
 Source: "C:\{#DEVELDir}\{#DEVEL_QGISInstallMofa4Q}\input\batch\uninstall_cleanup_qgisInstall.bat"; \
       DestDir: "{app}\batch"; \
       AfterInstall: ReplaceBatfile('{app}\batch','uninstall_cleanup_qgisInstall.bat');
@@ -127,13 +138,13 @@ Source: "C:\{#DEVELDir}\{#DEVEL_QGISInstallMofa4Q}\changelog.md"; \
 Name: "{autostartmenu}\{#MyAppName}\{#MyAppIconName}_{#MyAppCompany}"; \
       Filename: "{app}\batch\mofa4q.bat"; \
       IconFilename: {app}\icons\mops_public.ico; \
-      Comment: "Startet die QGIS mit dem Profil {#MyAppName}"; \
+      Comment: "ExpandConstant('{cm:StartQgis}') {#MyAppName}"; \
       WorkingDir: "{app}\batch"; \
       Flags: foldershortcut;
 Name: "{autostartmenu}\{#MyAppName}\{#MyAppSyncIconName}_{#MyAppCompany}"; \
       Filename: "{app}\batch\mofa4q_sync.bat"; \
       IconFilename: {app}\icons\mops_sync_public.ico; \
-      Comment: "Startet die Anwendung Mofa4q-Sync"; \
+      Comment: "ExpandConstant('{cm:StartQgisSynch}')"; \
       WorkingDir: "{app}\batch"; \
       Flags: foldershortcut runminimized;
 
@@ -154,14 +165,14 @@ var
   begin
     Page := CreateCustomPage(
       PreviousPageId,
-      'MoFa4Q Installer',
-      'Installer wird QGIS und MoFa4Q-Profil'
+      ExpandConstant('{cm:FirstTabInstaller2}'),
+      ExpandConstant('{cm:FirstTabInstaller3}')
   );
   Label1 := TLabel.Create(Page);
     with Label1 do
     begin
       Parent := Page.Surface;
-      Caption := 'Mit dem Installer wird das QGIS und das MoFa4Q-Profil installiert.';
+      Caption := ExpandConstant('{cm:FirstTabInstaller}');
       Left := ScaleX(0);
       Top := ScaleY(0);
       Width := ScaleX(400);
